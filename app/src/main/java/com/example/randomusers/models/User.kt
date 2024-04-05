@@ -2,7 +2,7 @@ package com.example.randomusers.models
 
 import android.os.Parcel
 import android.os.Parcelable
-import java.io.Serializable
+
 
 data class User(
     val name: UserName,
@@ -17,7 +17,7 @@ data class User(
     val id: UserId?=null,
     val picture:ProfilePicture?=null,
     val nat: String=""
-) : Parcelable, Serializable {
+) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readParcelable(UserName::class.java.classLoader)!!,
         parcel.readString()!!,

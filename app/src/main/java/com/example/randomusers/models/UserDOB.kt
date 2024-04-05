@@ -3,12 +3,12 @@ package com.example.randomusers.models
 //user's date of birth
 import android.os.Parcel
 import android.os.Parcelable
-import java.io.Serializable
+
 
 data class UserDOB(
     val date: String,
     val age: Int
-) : Parcelable, Serializable {
+) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
         parcel.readInt()

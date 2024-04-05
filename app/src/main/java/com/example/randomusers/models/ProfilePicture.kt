@@ -2,13 +2,13 @@ package com.example.randomusers.models
 
 import android.os.Parcel
 import android.os.Parcelable
-import java.io.Serializable
+
 
 data class ProfilePicture(
     val large: String,
     val medium: String="",
     val thumbnail: String=""
-) : Parcelable, Serializable {
+) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
         parcel.readString() ?: "",

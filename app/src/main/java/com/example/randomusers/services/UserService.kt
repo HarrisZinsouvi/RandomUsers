@@ -1,7 +1,6 @@
 package com.example.randomusers.services
 
 import com.example.randomusers.dto.UserResponse
-import com.example.randomusers.models.User
 import retrofit2.http.GET
 import retrofit2.http.Query
 

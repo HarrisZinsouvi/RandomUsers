@@ -2,7 +2,7 @@ package com.example.randomusers.models
 
 import android.os.Parcel
 import android.os.Parcelable
-import java.io.Serializable
+
 
 data class UserLogin(
     val uuid: String,
@@ -12,7 +12,7 @@ data class UserLogin(
     val md5: String,
     val sha1: String,
     val sha256: String
-) : Parcelable, Serializable{
+) : Parcelable{
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
         parcel.readString()!!,

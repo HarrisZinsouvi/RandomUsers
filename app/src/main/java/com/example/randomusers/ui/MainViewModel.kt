@@ -12,8 +12,8 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(private val userRepository: UserRepository) : ViewModel() {
     val users: MutableStateFlow<List<User>> = MutableStateFlow(emptyList())
-    var currentPage = 1
-    val pageSize = 5
+    var currentPage = 0
+    val pageSize = 1
     private var isLastPage = false
     private var isLoading = false
 
