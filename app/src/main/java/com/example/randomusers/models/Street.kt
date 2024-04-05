@@ -2,11 +2,12 @@ package com.example.randomusers.models
 
 import android.os.Parcel
 import android.os.Parcelable
+import java.io.Serializable
 
 data class Street(
     val number: Int,
     val name: String
-) : Parcelable {
+) : Parcelable, Serializable {
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
         parcel.readString()!!

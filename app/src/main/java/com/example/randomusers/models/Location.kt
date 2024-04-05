@@ -2,6 +2,7 @@ package com.example.randomusers.models
 
 import android.os.Parcel
 import android.os.Parcelable
+import java.io.Serializable
 
 data class Location(
     val street: Street,
@@ -11,7 +12,7 @@ data class Location(
     val postcode: Any,
     val coordinates: Coordinates,
     val timezone: Timezone
-) : Parcelable {
+) : Parcelable, Serializable {
     constructor(parcel: Parcel) : this(
         parcel.readParcelable(Street::class.java.classLoader)!!,
         parcel.readString()!!,

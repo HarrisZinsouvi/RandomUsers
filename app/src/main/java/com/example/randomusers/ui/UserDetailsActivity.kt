@@ -70,14 +70,7 @@ fun UserDetails(user: User?) {
                 val loadedPainter = user.picture?.large?.let { loadImage(it) }
                 painter = loadedPainter?.let { BitmapPainter(it) }
             }
-            /*Image(
-                painter = rememberImagePainter(user.picture?.large),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(200.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, MaterialTheme.colors.primary, CircleShape)
-            )*/
+
             painter?.let {
                 Image(
                     painter = it,
