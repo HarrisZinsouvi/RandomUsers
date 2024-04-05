@@ -1,5 +1,6 @@
 package com.example.randomusers.ui
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -75,7 +76,12 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.Start
                     ) {
                         Text(text = "Utilisateurs",  fontWeight = FontWeight.Bold, fontSize = 18.sp )
-                        UserList(users)
+                        UserList(users) { user ->
+                            // Gérer le clic sur l'utilisateur
+                            val intent = Intent(this@MainActivity, UserDetailsActivity::class.java)
+                            intent.putExtra("user", user)
+                            startActivity(intent)
+                        }
                     }
 
                 }
@@ -85,20 +91,20 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun UserList(users: List<User>) {
+fun UserList(users: List<User>, onUserClick: (User) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp)
     ) {
         itemsIndexed(users) { index, user ->
-            UserCard(user = user)
+            UserCard(user = user, onClick = { onUserClick(user) })
         }
 
     }
 }
 
 @Composable
-fun UserCard(user: User) {
+fun UserCard(user: User, onClick: () -> Unit) {
     Card(
 
         modifier = Modifier
@@ -107,11 +113,12 @@ fun UserCard(user: User) {
         elevation = CardDefaults.cardElevation(
             defaultElevation = 2.dp
         ),
+        onClick = onClick
     ) {
         var painter by remember { mutableStateOf<Painter?>(null) }
 
-        LaunchedEffect(user.picture?.thumbnail) {
-            val loadedPainter = user.picture?.thumbnail?.let { loadImage(it) }
+        LaunchedEffect(user.picture?.medium) {
+            val loadedPainter = user.picture?.medium?.let { loadImage(it) }
             painter = loadedPainter?.let { BitmapPainter(it) }
         }
         Row(
@@ -147,7 +154,7 @@ fun TestUser() {
                 name = UserName("Me", "John","Doe"),
                 email = "john.doe@example.com",
                 picture = ProfilePicture("https://randomuser.me/api/portraits/thumb/men/1.jpg")
-            )
+            ), { }
         )
     }
 }
