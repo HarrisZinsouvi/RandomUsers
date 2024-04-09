@@ -1,0 +1,191 @@
+
+/*class MainActivity : ComponentActivity() {
+    private lateinit var viewModel: MainViewModel
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            viewModel = viewModel(
+                factory = ViewModelFactory(UserRepository(RetrofitInstance.getRetrofitInstance()))
+            )
+            viewModel.fetchUsers()
+
+            val users by viewModel.users.collectAsState()
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (users.isEmpty()) {
+                    CircularProgressIndicator() // Afficher une indication de chargement si la liste d'utilisateurs est nulle ou vide
+                } else {
+
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Text(text = "Utilisateurs",  fontWeight = FontWeight.Bold, fontSize = 18.sp )
+                        UserList(users) { user ->
+                            // Gérer le clic sur l'utilisateur
+                            val intent = Intent(this@MainActivity, UserDetailsActivity::class.java)
+                            intent.putExtra("user", user)
+                            startActivity(intent)
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun UserList(users: List<User>, onUserClick: (User) -> Unit) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        itemsIndexed(users) { index, user ->
+            UserCard(user = user, onClick = { onUserClick(user) })
+        }
+
+    }
+}
+
+@Composable
+fun UserCard(user: User, onClick: () -> Unit) {
+    Card(
+
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        ),
+        onClick = onClick
+    ) {
+        var painter by remember { mutableStateOf<Painter?>(null) }
+
+        LaunchedEffect(user.picture?.medium) {
+            val loadedPainter = user.picture?.medium?.let { loadImage(it) }
+            painter = loadedPainter?.let { BitmapPainter(it) }
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(8.dp)
+        ) {
+            // Avatar rond
+            painter?.let {
+                Image(
+                    painter = it,
+                    contentDescription = "Avatar",
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(text = "Mail: ${user.email}", fontWeight = FontWeight.Bold, fontSize = 12.sp )
+                Text(text = "Nom: ${user.name.last}")
+                Text(text = "Prénom: ${user.name.first}")
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TestUser() {
+    RandomUsersTheme {
+        UserCard(
+            user = User(
+                name = UserName("Me", "John","Doe"),
+                email = "john.doe@example.com",
+                picture = ProfilePicture("https://randomuser.me/api/portraits/thumb/men/1.jpg")
+            ), { }
+        )
+    }
+}*/
+
+
+
+/*
+*
+*
+class MainViewModel(private val userRepository: UserRepository) : ViewModel() {
+
+    private val _pagingData = MutableStateFlow<PagingData<User>>(PagingData.empty())
+    val pagingData: StateFlow<PagingData<User>> = _pagingData
+
+    private var currentPage = 1
+    private var isLastPage = false
+    private var isLoading = false
+
+    private val pagingConfig = PagingConfig(
+        pageSize = 5,
+        enablePlaceholders = false
+    )
+
+    fun fetchUsers() {
+        if (isLoading || isLastPage) return
+        isLoading = true
+
+        viewModelScope.launch {
+            try {
+                val pagingSource = UserPagingSource(userRepository)
+                val newPagingData = Pager(pagingConfig) {
+                    pagingSource
+                }.flow
+                    .cachedIn(viewModelScope)
+
+                newPagingData.collect {
+                    _pagingData.value = it
+                }
+
+                currentPage++
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+}
+
+
+* */
+
+
+
+/*class MainViewModel(private val userRepository: UserRepository) : ViewModel() {
+    val users: MutableStateFlow<List<User>> = MutableStateFlow(emptyList())
+    var currentPage = 0
+    private var isLastPage = false
+    private var isLoading = false
+
+    fun fetchUsers() {
+        if (isLoading || isLastPage) return
+        isLoading = true
+        viewModelScope.launch {
+            try {
+
+                val res = userRepository.getUsers(currentPage, DEFAULT_PAGE_SIZE, DEFAULT_SEED)
+                //Log.i("RESULT ",res.toString())
+                if (res.results.isEmpty()) {
+                    isLastPage = true
+                } else {
+                    users.value = res.results
+                    currentPage++
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+}*/
+

@@ -1,87 +1,149 @@
 package com.example.randomusers.ui
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.paging.LoadState
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.randomusers.config.RetrofitInstance
-import com.example.randomusers.models.ProfilePicture
 import com.example.randomusers.models.User
-import com.example.randomusers.models.UserName
 import com.example.randomusers.repositories.UserRepository
-import com.example.randomusers.ui.lib.loadImage
 import com.example.randomusers.ui.theme.RandomUsersTheme
+import com.google.accompanist.coil.rememberCoilPainter
+import kotlinx.coroutines.flow.Flow
 
 
 class MainActivity : ComponentActivity() {
+
     private lateinit var viewModel: MainViewModel
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+
             viewModel = viewModel(
                 factory = ViewModelFactory(UserRepository(RetrofitInstance.getRetrofitInstance()))
             )
-            viewModel.fetchUsers()
-
-            val users by viewModel.users.collectAsState()
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                if (users.isEmpty()) {
-                    CircularProgressIndicator() // Afficher une indication de chargement si la liste d'utilisateurs est nulle ou vide
-                } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(text = "Utilisateurs",  fontWeight = FontWeight.Bold, fontSize = 18.sp )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    RandomUsersTheme {
+                    UserList( userList=viewModel.users, context = this@MainActivity)
+                }
+                }
+            }
 
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.Start
-                    ) {
-                        Text(text = "Utilisateurs",  fontWeight = FontWeight.Bold, fontSize = 18.sp )
-                        UserList(users) { user ->
-                            // Gérer le clic sur l'utilisateur
-                            val intent = Intent(this@MainActivity, UserDetailsActivity::class.java)
-                            intent.putExtra("user", user)
-                            startActivity(intent)
-                        }
+
+        }
+    }
+}
+
+
+
+
+@Composable
+fun UserList(userList: Flow<PagingData<User>>, context: Context) {
+    val userListItems: LazyPagingItems<User> =            userList.collectAsLazyPagingItems()
+
+    LazyColumn {
+        itemsIndexed(userListItems.itemSnapshotList.items) { index, item ->
+            item.let {
+                UserCard(user = it, onClick = {
+                    // Gérer le clic sur l'utilisateur
+                    val intent = Intent(context, UserDetailsActivity::class.java)
+                    intent.putExtra("user", item)
+                    context.startActivity(intent)
+                })
+            }
+        }
+        userListItems.apply {
+            when {
+                loadState.refresh is LoadState.Loading -> {
+                    item {
+                        //au chargement initial
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentWidth(Alignment.CenterHorizontally)
+                        )
+                    }                }
+                loadState.append is LoadState.Loading -> {
+                    //quand on charge la page suivante
+
+                    item {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentWidth(Alignment.CenterHorizontally)
+                        )
+                    }
+                }
+                loadState.append is LoadState.Error -> {
+                    //erreur
+
+                    val errorMessage = (userListItems.loadState.append as LoadState.Error).error.localizedMessage
+                    item {
+                        // Afficher un message d'erreur
+                        Text(
+                            text = "Erreur de chargement: $errorMessage",
+                            color = Color.Red,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        )
                     }
 
                 }
@@ -91,71 +153,65 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun UserList(users: List<User>, onUserClick: (User) -> Unit) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp)
-    ) {
-        itemsIndexed(users) { index, user ->
-            UserCard(user = user, onClick = { onUserClick(user) })
-        }
-
-    }
-}
-
-@Composable
 fun UserCard(user: User, onClick: () -> Unit) {
     Card(
-
         modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        ),
-        onClick = onClick
+            .padding(bottom = 5.dp, top = 5.dp,
+                start = 5.dp, end = 5.dp)
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(15.dp),
+        elevation =  CardDefaults.cardElevation(
+            defaultElevation = 5.dp
+        )
     ) {
-        var painter by remember { mutableStateOf<Painter?>(null) }
-
-        LaunchedEffect(user.picture?.medium) {
-            val loadedPainter = user.picture?.medium?.let { loadImage(it) }
-            painter = loadedPainter?.let { BitmapPainter(it) }
-        }
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
         ) {
-            // Avatar rond
-            painter?.let {
+            Surface(
+                modifier = Modifier.size(130.dp).fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surface.copy(
+                    alpha = 0.2f)
+            ) {
+                val image = rememberCoilPainter(
+                    request = user.picture?.medium,
+                    fadeIn = true)
                 Image(
-                    painter = it,
-                    contentDescription = "Avatar",
+                    painter = image,
+                    contentDescription = null,
                     modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
+                        .height(100.dp)
+                        .clip(shape = RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
                 )
             }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(text = "Mail: ${user.email}", fontWeight = FontWeight.Bold, fontSize = 12.sp )
-                Text(text = "Nom: ${user.name.last}")
-                Text(text = "Prénom: ${user.name.first}")
+            Column(
+                modifier = Modifier
+                    .padding(start = 12.dp)
+                    .align(Alignment.CenterVertically)
+            ) {
+                Text(
+                    text = user.name.first+" "+user.name.last,
+                    fontWeight = FontWeight.Bold,
+                    style = TextStyle(fontSize = 22.sp),
+                    color = Color.Black
+                )
+                CompositionLocalProvider(
+                    LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant
+                ) {
+                    Text(
+                        text = user.email,
+                        style = typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(end = 25.dp)
+                    )
+                }
             }
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun TestUser() {
-    RandomUsersTheme {
-        UserCard(
-            user = User(
-                name = UserName("Me", "John","Doe"),
-                email = "john.doe@example.com",
-                picture = ProfilePicture("https://randomuser.me/api/portraits/thumb/men/1.jpg")
-            ), { }
-        )
-    }
-}
-

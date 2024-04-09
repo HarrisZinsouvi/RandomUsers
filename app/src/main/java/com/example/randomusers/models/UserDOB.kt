@@ -14,6 +14,8 @@ data class UserDOB(
         parcel.readInt()
     )
 
+
+
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(date)
         parcel.writeInt(age)
@@ -21,6 +23,10 @@ data class UserDOB(
 
     override fun describeContents(): Int {
         return 0
+    }
+
+    override fun toString(): String {
+        return "Naissance(date='$date', age=$age)"
     }
 
     companion object CREATOR : Parcelable.Creator<UserDOB> {
